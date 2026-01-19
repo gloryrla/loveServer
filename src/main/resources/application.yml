@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/love
+    username: gloryrla
+    password: dudrhkd
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+app:
+  jwt:
+    secret: "최소_32자_이상_랜덤_문자열로_바꿔"
+    accessTokenMinutes: 60
+
+management:
+  health:
+    redis:
+      enabled: false
