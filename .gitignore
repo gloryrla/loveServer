@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Application Config (민감 정보 포함) ###
+src/main/resources/application.yml
