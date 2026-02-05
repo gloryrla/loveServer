@@ -25,6 +25,9 @@ app:
     accessTokenMinutes: 60
   openai:
     api-key: "YOUR_OPENAI_API_KEY_HERE"
+  bert:
+    # BERT 감정 분류 서비스 URL (Mac은 5000이 AirPlay라 5001 권장)
+    service-url: "http://localhost:5001"
 
 management:
   health:

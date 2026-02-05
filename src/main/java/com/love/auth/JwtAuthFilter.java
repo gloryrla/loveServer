@@ -1,8 +1,5 @@
 package com.love.auth;
 
-import com.love.global.error.BizException;
-import com.love.global.error.ErrorCode;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -48,10 +45,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             chain.doFilter(request, response);
 
-        } catch (ExpiredJwtException e) {
-            throw new BizException(ErrorCode.UNAUTHORIZED);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new BizException(ErrorCode.UNAUTHORIZED);
+            // 토큰 만료/잘못돼도 401 던지지 않고 그대로 통과 → permitAll 경로(/api/chat 등)는 인증 없이 동작
+            chain.doFilter(request, response);
         }
     }
 }
