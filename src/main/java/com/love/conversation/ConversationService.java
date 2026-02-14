@@ -24,6 +24,7 @@ public class ConversationService {
         c.setUserId(userId);
         c.setTitle(req.title());
         c.setScenarioKey(req.scenarioKey());
+        c.setPersonaKey(req.personaKey());
         return conversationRepository.save(c);
     }
 
@@ -44,6 +45,14 @@ public class ConversationService {
         m.setConversationId(conversationId);
         m.setRole(req.role());
         m.setContent(req.content().trim());
+        m.setClientMessageId(req.clientMessageId());
+        
+        // lastMessageAt 업데이트
+        Conversation conv = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("대화방이 없습니다."));
+        conv.setLastMessageAt(java.time.Instant.now());
+        conversationRepository.save(conv);
+        
         return messageRepository.save(m);
     }
 
@@ -61,8 +70,8 @@ public class ConversationService {
     public record ConversationSummary(
             Long id,
             String title,
-            String scenarioKey,
-            java.time.Instant updatedAt
+            String mode,
+            java.time.Instant lastMessageAt
     ) {}
 
     public List<ConversationSummary> listConversations(Long userId) {
@@ -71,8 +80,8 @@ public class ConversationService {
                 .map(c -> new ConversationSummary(
                         c.getId(),
                         c.getTitle(),
-                        c.getScenarioKey(),
-                        c.getUpdatedAt()
+                        c.getMode() != null ? c.getMode().name() : "SIMULATION",
+                        c.getLastMessageAt() != null ? c.getLastMessageAt() : c.getUpdatedAt()
                 ))
                 .toList();
     }

@@ -10,38 +10,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/test-results")
 @RequiredArgsConstructor
-public class UserController {
+public class TestResultsController {
 
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
-
-    @GetMapping("/me")
-    public MeResponse me(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-
-        // ✅ 이제 인증 식별자는 userId라고 가정
-        String userId = authentication.getName();
-
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-
-        return new MeResponse(
-                user.getId(),
-                user.getUserId(),
-                user.getName(),
-                user.getBirthDate()
-        );
-    }
 
     /**
      * 최초 1회만 저장되는 '여친 유형' 값 저장
      * - 이미 저장되어 있으면 409(CONFLICT)
      */
-    @PostMapping("/test-results/partner-type")
+    @PostMapping("/partner-type")
     @Transactional
     public void savePartnerType(
             Authentication authentication,
@@ -85,6 +65,5 @@ public class UserController {
         }
     }
 
-    public record MeResponse(Long id, String userId, String name, java.time.LocalDate birthDate) {}
     public record PartnerTypeSaveRequest(String value) {}
 }

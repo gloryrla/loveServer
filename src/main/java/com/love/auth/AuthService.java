@@ -48,6 +48,7 @@ public class AuthService {
 
         // ✅ JWT subject도 email 대신 userId로
         String token = jwtProvider.createAccessToken(user.getId(), user.getUserId());
-        return new TokenResponse(token);
+        // AuthService는 단순히 토큰만 반환 (상세 정보는 AuthController에서 처리)
+        return new TokenResponse(token, null, null, null, null);
     }
 }

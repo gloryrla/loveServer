@@ -4,5 +4,6 @@ import com.love.conversation.MessageRole;
 
 public record CreateMessageRequest(
         MessageRole role,
-        String content
+        String content,
+        String clientMessageId
 ) {}

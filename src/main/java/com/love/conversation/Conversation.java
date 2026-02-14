@@ -21,17 +21,31 @@ public class Conversation {
     @Column(name = "scenario_key", length = 50)
     private String scenarioKey;
 
+    @Column(name = "persona_key", length = 50)
+    private String personaKey;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode", length = 20)
+    private ConversationMode mode;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "last_message_at", nullable = false)
+    private Instant lastMessageAt;
+
     @PrePersist
     void prePersist() {
         var now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
+        this.lastMessageAt = now;
+        if (this.mode == null) {
+            this.mode = ConversationMode.SIMULATION;
+        }
     }
 
     @PreUpdate
@@ -47,6 +61,12 @@ public class Conversation {
     public void setTitle(String title) { this.title = title; }
     public String getScenarioKey() { return scenarioKey; }
     public void setScenarioKey(String scenarioKey) { this.scenarioKey = scenarioKey; }
+    public String getPersonaKey() { return personaKey; }
+    public void setPersonaKey(String personaKey) { this.personaKey = personaKey; }
+    public ConversationMode getMode() { return mode; }
+    public void setMode(ConversationMode mode) { this.mode = mode; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getLastMessageAt() { return lastMessageAt; }
+    public void setLastMessageAt(Instant lastMessageAt) { this.lastMessageAt = lastMessageAt; }
 }

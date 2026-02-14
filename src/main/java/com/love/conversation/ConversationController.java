@@ -26,7 +26,7 @@ public class ConversationController {
             @RequestBody CreateConversationRequest req
     ) {
         var c = service.createConversation(me.userId(), req);
-        return Map.of("id", c.getId());
+        return Map.of("conversationId", c.getId());
     }
 
     // 2) 메시지 추가
@@ -48,6 +48,34 @@ public class ConversationController {
     ) {
         return service.getThread(me.userId(), conversationId);
     }
+
+    // 4) 특정 대화의 메시지만 조회
+    @GetMapping("/{id}/messages")
+    public List<MessageDto> getMessages(
+            @AuthenticationPrincipal PrincipalDetails me,
+            @PathVariable("id") Long conversationId
+    ) {
+        var thread = service.getThread(me.userId(), conversationId);
+        return thread.messages().stream()
+                .map(m -> new MessageDto(
+                        m.getId(),
+                        m.getConversationId(),
+                        m.getRole().name(),
+                        m.getContent(),
+                        m.getClientMessageId(),
+                        m.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    public record MessageDto(
+            Long id,
+            Long conversationId,
+            String role,
+            String content,
+            String clientMessageId,
+            java.time.Instant createdAt
+    ) {}
 
     @GetMapping
     public List<ConversationService.ConversationSummary> list(@AuthenticationPrincipal PrincipalDetails principal) {

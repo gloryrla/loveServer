@@ -23,6 +23,9 @@ public class Message {
     @Column(nullable = false, columnDefinition = "text")
     private String content;
 
+    @Column(name = "client_message_id", length = 80)
+    private String clientMessageId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -39,5 +42,7 @@ public class Message {
     public void setRole(MessageRole role) { this.role = role; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getClientMessageId() { return clientMessageId; }
+    public void setClientMessageId(String clientMessageId) { this.clientMessageId = clientMessageId; }
     public Instant getCreatedAt() { return createdAt; }
 }
