@@ -2,6 +2,8 @@ package com.love.auth;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +17,7 @@ import java.util.Collections;
 
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final JwtProvider jwtProvider;
 
     public JwtAuthFilter(JwtProvider jwtProvider) {
@@ -46,7 +49,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
 
         } catch (JwtException | IllegalArgumentException e) {
-            // 토큰 만료/잘못돼도 401 던지지 않고 그대로 통과 → permitAll 경로(/api/chat 등)는 인증 없이 동작
+            // 토큰 만료/서명 오류 등 → 인증 미설정, 이후 인증 필요 경로는 401
+            log.warn("JWT invalid (request will be unauthenticated): {} - {}", e.getClass().getSimpleName(), e.getMessage());
             chain.doFilter(request, response);
         }
     }
