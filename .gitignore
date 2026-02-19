@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+bert-emotion-service/venv/
+bert-emotion-service/checkpoints/
+bert-emotion-service/.env
+.DS_Store
+*.DS_Store

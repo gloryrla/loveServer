@@ -1,21 +1,21 @@
 package com.love.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final TestResultRepository testResultRepository;
 
     @GetMapping("/me")
     public MeResponse me(Authentication authentication) {
@@ -38,8 +38,8 @@ public class UserController {
     }
 
     /**
-     * 최초 1회만 저장되는 '여친 유형' 값 저장
-     * - 이미 저장되어 있으면 409(CONFLICT)
+     * '여친 유형' 저장 또는 갱신.
+     * - 최초: 새로 저장. 이미 있으면 기존 row의 result_value만 갱신 (다시 테스트하기 지원).
      */
     @PostMapping("/test-results/partner-type")
     @Transactional
@@ -47,41 +47,39 @@ public class UserController {
             Authentication authentication,
             @RequestBody PartnerTypeSaveRequest body
     ) {
+        log.info("partner-type save: auth={}, body={}", authentication != null && authentication.isAuthenticated(), body);
         if (authentication == null || !authentication.isAuthenticated()) {
+            log.warn("partner-type save: 401 (no auth)");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
 
-        String userId = authentication.getName();
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        String loginId = authentication.getName();
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> {
+                    log.warn("partner-type save: 401 (user not found for loginId={})", loginId);
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                });
 
         if (body == null || body.value() == null || body.value().trim().isBlank()) {
+            log.warn("partner-type save: 400 (value blank)");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "value는 필수입니다.");
         }
 
-        // 이미 설정되어 있는지 확인
-        try {
-            Integer exists = jdbcTemplate.queryForObject(
-                    "select 1 from test_results where user_id = ? and test_key = 'partner_type' limit 1",
-                    Integer.class,
-                    user.getId()
-            );
-            if (exists != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 여친 유형이 설정되어 있습니다.");
-            }
-        } catch (EmptyResultDataAccessException ignore) {
-            // 아직 설정되지 않음
-        }
+        String value = body.value().trim();
+        var existing = testResultRepository.findFirstByUserIdAndTestKeyOrderByIdDesc(user.getId(), "partner_type");
 
-        // 저장 (created_at은 now()로 세팅)
-        int updated = jdbcTemplate.update(
-                "insert into test_results (user_id, test_key, result_value, created_at) values (?, 'partner_type', ?, now())",
-                user.getId(),
-                body.value().trim()
-        );
-
-        if (updated != 1) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "저장에 실패했습니다.");
+        if (existing.isPresent()) {
+            TestResult tr = existing.get();
+            tr.setResultValue(value);
+            testResultRepository.save(tr);
+            log.info("partner-type updated for userId={}", user.getId());
+        } else {
+            TestResult tr = new TestResult();
+            tr.setUserId(user.getId());
+            tr.setTestKey("partner_type");
+            tr.setResultValue(value);
+            testResultRepository.save(tr);
+            log.info("partner-type created for userId={}", user.getId());
         }
     }
 

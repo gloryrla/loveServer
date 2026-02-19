@@ -23,6 +23,8 @@ app:
   jwt:
     secret: "최소_32자_이상_랜덤_문자열로_바꿔"
     accessTokenMinutes: 60
+  ai-server:
+    url: http://localhost:5001
 
 management:
   health:

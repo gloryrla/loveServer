@@ -34,13 +34,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = header.substring(7);
+        String token = header.substring(7).trim();
+        if (token.isEmpty()) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         try {
             Long userId = jwtProvider.getUserId(token);
-            String email = jwtProvider.parse(token).getPayload().get("email", String.class);
-
-            var principal = new PrincipalDetails(userId, email);
+            String loginId = jwtProvider.parse(token).getPayload().get("email", String.class);
+            if (loginId == null) {
+                loginId = "";
+            }
+            var principal = new PrincipalDetails(userId, loginId);
 
             // UsernamePasswordAuthenticationToken(principal, credentials, authorities)
             var auth = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());

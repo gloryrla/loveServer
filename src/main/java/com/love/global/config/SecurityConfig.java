@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/actuator/health"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED))

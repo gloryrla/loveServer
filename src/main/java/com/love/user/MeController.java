@@ -14,7 +14,7 @@ public class MeController {
     public Map<String, Object> me(@AuthenticationPrincipal PrincipalDetails me) {
         return Map.of(
                 "userId", me.userId(),
-                "email", me.email()
+                "userId", me.loginId()
         );
     }
 }
